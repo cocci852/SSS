@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Sourdough Starter Simulation</string>
+    <string name="location_counter">COUNTER</string>
+    <string name="location_fridge">FRIDGE</string>
+    <string name="location_pantry">PANTRY</string>
+    <string name="lid_button_add_lid">LID</string>
+    <string name="lid_button_remove_lid">DELID</string>
+    <string name="feed_button">FEED</string>
+    <string name="location_temp_fridge">40°F</string>
+    <string name="location_temp_pantry">70°F</string>
 </resources>
