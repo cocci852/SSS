@@ -12,6 +12,12 @@ import android.view.ContextThemeWrapper;
  * Created by cocci852 on 4/5/2016.
  */
 public class LocationDialog extends DialogFragment {
+
+
+    public interface LocationChoiceListener {
+        void onChoiceMade(int location_id);
+    }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(),R.style.AppTheme_Dialog));
@@ -19,8 +25,9 @@ public class LocationDialog extends DialogFragment {
                 .setItems(R.array.location_array, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int location_id) {
                         //0=counter, 1=pantry, 2=fridge
-
-
+                        LocationChoiceListener activity = (LocationChoiceListener) getActivity();
+                        activity.onChoiceMade(location_id);
+                        Log.e("Choice",""+location_id);
                     }
                 });
         return builder.create();
