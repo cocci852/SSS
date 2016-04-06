@@ -29,6 +29,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.common.ConnectionResult;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -175,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         if (location_id == 0) {
             backgroundObject.setImageResource(R.drawable.background_counter);
             locationTextView.setText(R.string.location_counter);
-            locationTemperatureTextView.setText("test");
+            locationTemperatureTextView.setText(recentTemp+"°F");
         } else if (location_id == 1) {
             backgroundObject.setImageResource(R.drawable.background_pantry);
             locationTextView.setText(R.string.location_pantry);
@@ -216,7 +217,9 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
-                        Log.e("response", String.valueOf(response.getDouble("temp")));
+                        JSONObject temp = response.getJSONObject("main");
+                        recentTemp = (int) Math.round(temp.getDouble("temp"));
+                        Log.e("response", ""+recentTemp);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
