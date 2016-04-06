@@ -19,13 +19,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.location.LocationManager;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.common.ConnectionResult;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MainActivity extends AppCompatActivity implements LocationDialog.LocationChoiceListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+    //Permissions Constants
+    final int MY_PERMISSIONS_REQUEST_COURSE_LOCATION = 10;
+
     //States
     boolean isJarFull = false;
     boolean isLidOn = false;
@@ -36,9 +48,12 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     GoogleApiClient mGoogleApiClient;
 
+
     //weather api: apiCall1 + lat + apiCall2 + lon
     String apiCall1 = "http://api.openweathermap.org/data/2.5/weather?appid=d02ab782a31da47683902b8451aaf31c&units=imperial&lat=";
     String apiCall2 = "&lon=";
+
+    static RequestQueue weatherQueue;
 
 
     //Buttons
@@ -67,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        weatherQueue = Volley.newRequestQueue(this);
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -129,13 +146,16 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             lidObject.animate().translationY(lidTranslationOn).alpha(1f).setDuration(500);
             lidButton.setText(R.string.lid_button_remove_lid);
         }
-
-
     }
 
     //Click to divide starter by half and add new flour + water
     public void feedJar(View v) {
+        if (!isJarFull) {
+            firstFeed();
+        }
+        else {
 
+        }
     }
 
     //Click to change location of Jar
@@ -155,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         if (location_id == 0) {
             backgroundObject.setImageResource(R.drawable.background_counter);
             locationTextView.setText(R.string.location_counter);
-            locationTemperatureTextView.setText("" + "test");
+            locationTemperatureTextView.setText("test");
         } else if (location_id == 1) {
             backgroundObject.setImageResource(R.drawable.background_pantry);
             locationTextView.setText(R.string.location_pantry);
@@ -171,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -179,6 +199,10 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_COURSE_LOCATION);
             return;
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -187,6 +211,26 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             recentLongitude = (int) Math.round(mLastLocation.getLongitude());
             String apiCall = apiCall1 + recentLatitude + apiCall2 +recentLongitude;
 
+            JsonObjectRequest weatherRequest = new JsonObjectRequest(Request.Method.GET, apiCall, null, new Response.Listener<JSONObject>() {
+
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        Log.e("response", String.valueOf(response.getDouble("temp")));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+
+            });
+
+            weatherQueue.add(weatherRequest);
         }
     }
 
@@ -197,6 +241,26 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_COURSE_LOCATION:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //granted
+                    mGoogleApiClient.connect();
+                }
+                else {
+                    //denied
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+
+        }
 
     }
 }

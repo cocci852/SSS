@@ -27,7 +27,6 @@ public class LocationDialog extends DialogFragment {
                         //0=counter, 1=pantry, 2=fridge
                         LocationChoiceListener activity = (LocationChoiceListener) getActivity();
                         activity.onChoiceMade(location_id);
-                        Log.e("Choice",""+location_id);
                     }
                 });
         return builder.create();
