@@ -6,11 +6,17 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
         <item name="android:textColorPrimary">@color/primary_text_material_light</item>
-        <item name="android:colorBackground">@color/material_grey_300</item>
+        <item name="android:colorBackground">@color/background_material_light</item>
     </style>
 
-    <style name="MyTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="AppTheme.Button" parent="AppTheme">
+        <item name="android:colorButtonNormal">@color/colorPrimary</item>
+    </style>
+
+    <style name="AppTheme.Dialog" parent="Theme.AppCompat.Light.Dialog">
+
+    </style>
 
 </resources>

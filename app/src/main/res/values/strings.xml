@@ -1,8 +1,14 @@
 <resources>
     <string name="app_name">Sourdough Starter Simulation</string>
-    <string name="location_counter">COUNTER</string>
-    <string name="location_fridge">FRIDGE</string>
-    <string name="location_pantry">PANTRY</string>
+    <string name="location_counter">Counter</string>
+    <string name="location_fridge">Fridge</string>
+    <string name="location_pantry">Pantry</string>
+    <string name="pick_location">Choose location</string>
+    <string-array name="location_array">
+        <item>Counter</item>
+        <item>Pantry</item>
+        <item>Fridge</item>
+    </string-array>
     <string name="lid_button_add_lid">LID</string>
     <string name="lid_button_remove_lid">DELID</string>
     <string name="feed_button">FEED</string>

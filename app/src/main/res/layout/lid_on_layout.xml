@@ -8,7 +8,19 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.houseonacliff.sourdoughstartersimulation.MainActivity"
-    android:background="@drawable/background_counter">
+    android:padding="0dp"
+    android:id="@+id/base">
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/location_background"
+        android:adjustViewBounds="true"
+        android:src="@drawable/background_pantry"
+        android:scaleType="fitXY"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentEnd="false"
+        android:layout_centerInParent="true" />
 
     <android.support.v7.widget.CardView
         android:layout_width="fill_parent"
@@ -17,7 +29,11 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:clickable="true"
-        android:layout_alignParentEnd="true">
+        android:layout_alignParentEnd="true"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_margin="@dimen/activity_vertical_margin">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -26,12 +42,13 @@
             android:padding="5dp"
             android:orientation="horizontal"
             android:baselineAligned="false"
-            android:weightSum="1">
+            android:weightSum="1"
+            android:elevation="5dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/textView"
+                android:id="@+id/location_text"
                 android:textAlignment="textStart"
                 android:text="@string/location_counter"
                 android:textColor="@android:color/holo_red_dark"
@@ -44,10 +61,10 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="@string/location_temp_pantry"
-                android:id="@+id/textView2"
+                android:id="@+id/temp_text"
                 android:textAlignment="textEnd"
                 android:layout_alignParentEnd="true"
-                android:layout_alignBaseline="@+id/textView" />
+                android:layout_alignBaseline="@+id/location_text" />
 
         </RelativeLayout>
 
@@ -60,7 +77,10 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="false"
         android:layout_alignParentEnd="false"
-        android:layout_alignParentStart="false">
+        android:layout_alignParentStart="false"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:id="@+id/linearLayout">
 
         <android.support.v4.widget.Space
             android:layout_width="wrap_content"
@@ -71,8 +91,12 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/lid_button_add_lid"
-            android:id="@+id/lid_button" />
+            android:theme="@style/AppTheme.Button"
+            android:text="@string/lid_button_remove_lid"
+            android:id="@+id/lid_button"
+            android:onClick="changeLidState"
+            android:enabled="false"
+            />
 
         <android.support.v4.widget.Space
             android:layout_width="0dp"
@@ -83,8 +107,11 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.Button"
             android:text="@string/feed_button"
-            android:id="@+id/feed_button" />
+            android:id="@+id/feed_button"
+            android:onClick="feedJar"
+            android:enabled="false" />
 
         <android.support.v4.widget.Space
             android:layout_width="0dp"
@@ -92,6 +119,24 @@
             android:id="@+id/view3"
             android:layout_weight=".5" />
     </LinearLayout>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/jar_imageview"
+        android:src="@drawable/jar_empty_nolid"
+        android:scaleType="fitXY"
+        android:layout_marginTop="@dimen/jar_position_neutral"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lid_imageview"
+        android:src="@drawable/jar_lid"
+        android:scaleType="fitXY"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/jar_position_neutral" />
 
 
 </RelativeLayout>
