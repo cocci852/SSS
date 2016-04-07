@@ -78,6 +78,36 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     LocationDialog locationMenu = new LocationDialog();
 
+    //yeast types
+    MicrobeType yeast1;
+    MicrobeType yeast2;
+    MicrobeType yeast3;
+    MicrobeType yeast4;
+
+    //LAB types
+    MicrobeType lab1;
+    MicrobeType lab2;
+    MicrobeType lab3;
+    MicrobeType lab4;
+
+    //Bad microbe types
+    MicrobeType bad1;
+    MicrobeType bad2;
+    MicrobeType bad3;
+    MicrobeType bad4;
+
+    //Flour Types
+    FlourType flour1;
+    FlourType flour2;
+    FlourType flour3;
+    FlourType flour4;
+
+    //Water Types
+    WaterType water1;
+    WaterType water2;
+    WaterType water3;
+    WaterType water4;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +134,27 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
         locationTextView = (TextView) findViewById(R.id.location_text);
         locationTemperatureTextView = (TextView) findViewById(R.id.temp_text);
+
+        //Initialize Jar content components
+
+        //yeast
+        yeast1 = new MicrobeType(1, 3, 1, 3, 0, 3, 3, new int[] {3, 1, 3}, new float[] {4.28792058006871f, 0.355788444138025f, 17f}, 0);
+        yeast2 = new MicrobeType(3, 2, 3, 3, 1, 1, 1, new int[] {3, 1, 3}, new float[] {4.30664666041051f, 0.986272580647719f, 76f}, 0);
+        yeast3 = new MicrobeType(2, 2, 1, 2, 1, 1, 2, new int[] {3, 1, 3}, new float[] {4.76127193407772f, 0.588259154336376f, 38f}, 0);
+        yeast4 = new MicrobeType(1, 2, 2, 1, 0, 1, 3, new int[] {3, 1, 3}, new float[] {4.65521120178445f, 0.809170281265839f, 20f}, 0);
+
+        //LAB
+        lab1 = new MicrobeType(1, 1, 1, 1, 3, 1, 4, new int[] {4, 2, 4}, new float[] {4.00977412763703f, 1f, 13f}, 3);
+        lab2 = new MicrobeType(1, 2, 1, 2, 4, 1, 4, new int[] {4, 2, 4}, new float[] {4.95378936758775f, 1f, 72f}, 2);
+        lab3 = new MicrobeType(1, 2, 2, 2, 3, 1, 4, new int[] {4, 2, 4}, new float[] {4.20273945510692f, 1f, 94f}, 1);
+        lab4 = new MicrobeType(1, 1, 2, 2, 2, 1, 4, new int[] {4, 2, 4}, new float[] {4.55963149213567f, 1f, 81f}, 1);
+
+        //Bad microbes
+        bad1 = new MicrobeType(1, 2, 1, 2, 2, 2, 2, new int[] {4, 0, 4}, new float[] {4.4885970539606f, 6.31175492054399f, 6f}, 0);
+        bad2 = new MicrobeType(2, 1, 2, 2, 2, 2, 3, new int[] {4, 0, 4}, new float[] {4.75725147750113f, 0.117588900213596f, 80f}, 0);
+        bad3 = new MicrobeType(1, 2, 2, 2, 2, 1, 3, new int[] {4, 0, 4}, new float[] {4.14146938539871f, 2.50421479278808f, 73f}, 0);
+        bad4 = new MicrobeType(2, 2, 2, 1, 2, 1, 2, new int[] {4, 0, 4}, new float[] {4.2435920990729f, 1.89660960805486f, 35f}, 0);
+
 
     }
 
