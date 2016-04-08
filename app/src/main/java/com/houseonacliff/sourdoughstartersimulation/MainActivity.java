@@ -1,9 +1,6 @@
 package com.houseonacliff.sourdoughstartersimulation;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
-import android.animation.PropertyValuesHolder;
-import android.animation.ValueAnimator;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -15,9 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.location.LocationManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -29,12 +24,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.common.ConnectionResult;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class MainActivity extends AppCompatActivity implements LocationDialog.LocationChoiceListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements LocationDialog.LocationChoiceListener, FeedDialog.FeedChoiceListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     //Permissions Constants
     final int MY_PERMISSIONS_REQUEST_COURSE_LOCATION = 10;
@@ -42,6 +36,9 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     //States
     boolean isJarFull = false;
     boolean isLidOn = false;
+    int currentTemp;
+
+    //Location & weather data
     int recentTemp;
     int recentLatitude;
     int recentLongitude;
@@ -76,8 +73,11 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     float lidTranslationOn = 0f;
     float lidTranslationOff = -400f;
 
+    //dialogs
     LocationDialog locationMenu = new LocationDialog();
+    FeedDialog feedMenu = new FeedDialog();
 
+    //Jar content components
     //yeast types
     MicrobeType yeast1;
     MicrobeType yeast2;
@@ -136,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         locationTemperatureTextView = (TextView) findViewById(R.id.temp_text);
 
         //Initialize Jar content components
-
         //yeast
         yeast1 = new MicrobeType(1, 3, 1, 3, 0, 3, 3, new int[] {3, 1, 3}, new float[] {4.28792058006871f, 0.355788444138025f, 17f}, 0);
         yeast2 = new MicrobeType(3, 2, 3, 3, 1, 1, 1, new int[] {3, 1, 3}, new float[] {4.30664666041051f, 0.986272580647719f, 76f}, 0);
@@ -155,6 +154,17 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         bad3 = new MicrobeType(1, 2, 2, 2, 2, 1, 3, new int[] {4, 0, 4}, new float[] {4.14146938539871f, 2.50421479278808f, 73f}, 0);
         bad4 = new MicrobeType(2, 2, 2, 1, 2, 1, 2, new int[] {4, 0, 4}, new float[] {4.2435920990729f, 1.89660960805486f, 35f}, 0);
 
+        //Four
+        flour1 = new FlourType(836192, 145889, 248191, 515524, 245060, 290055);
+        flour2 = new FlourType(103640, 535219, 740826, 662230, 576043, 851554);
+        flour3 = new FlourType(794261, 969295, 333176, 156855, 413494, 982222);
+        flour4 = new FlourType(939548, 163878, 831923, 987953, 900974, 987204);
+
+        //Water
+        water1 = new WaterType(50917, 74175957);
+        water2 = new WaterType(34769, 5160676);
+        water3 = new WaterType(71388, 196);
+        water4 = new WaterType(82256, 52185);
 
     }
 
@@ -201,13 +211,29 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     }
 
     //Click to divide starter by half and add new flour + water
-    public void feedJar(View v) {
-        if (!isJarFull) {
-            firstFeed();
+    public void onfeedJar(View v) {
+        if (isLidOn) {
+            lidObject.animate().translationY(lidTranslationOff).alpha(0f).setDuration(250);
         }
-        else {
+        jarObject.animate().translationY(lidTranslationOff).alpha(0f).setDuration(500);
+        feedMenu.show(getFragmentManager(), "flour");
+    }
 
+    @Override
+    public void onFeedChoiceMade(int flour_id, int water_id) {
+        if (flour_id != -1) {
+            jarObject.setImageResource(R.drawable.jar_full_nolid);
+            feedJar(flour_id, water_id);
         }
+        if (isLidOn) {
+            lidObject.animate().translationY(lidTranslationOn).alpha(1f).setDuration(500).setStartDelay(250);
+        }
+        jarObject.animate().translationY(lidTranslationOn).alpha(1f).setDuration(500);
+        feedMenu.dismiss();
+    }
+
+    public void feedJar(int flour_id, int water_id) {
+
     }
 
     //Click to change location of Jar
@@ -215,15 +241,10 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         locationMenu.show(getFragmentManager(), "location");
     }
 
-    //First feed
-    public void firstFeed() {
-
-    }
-
-
+    //Called after Choosing location
     //0=counter, 1=pantry, 2=fridge
     @Override
-    public void onChoiceMade(int location_id) {
+    public void onLocationChoiceMade(int location_id) {
         if (location_id == 0) {
             backgroundObject.setImageResource(R.drawable.background_counter);
             locationTextView.setText(R.string.location_counter);
@@ -260,7 +281,19 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             recentLatitude = (int) Math.round(mLastLocation.getLatitude());
+            if (recentLatitude > 90) {
+                recentLatitude = 90;
+            }
+            else if (recentLatitude < -90) {
+                recentLatitude = -90;
+            }
             recentLongitude = (int) Math.round(mLastLocation.getLongitude());
+            if (recentLongitude > 180) {
+                recentLongitude = 180;
+            }
+            else if (recentLongitude < -180) {
+                recentLongitude = -180;
+            }
             String apiCall = apiCall1 + recentLatitude + apiCall2 +recentLongitude;
 
             JsonObjectRequest weatherRequest = new JsonObjectRequest(Request.Method.GET, apiCall, null, new Response.Listener<JSONObject>() {
@@ -270,7 +303,6 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
                     try {
                         JSONObject temp = response.getJSONObject("main");
                         recentTemp = (int) Math.round(temp.getDouble("temp"));
-                        Log.e("response", ""+recentTemp);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

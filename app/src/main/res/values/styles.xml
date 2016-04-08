@@ -16,7 +16,7 @@
     </style>
 
     <style name="AppTheme.Dialog" parent="Theme.AppCompat.Light.Dialog">
-
+        <item name="android:textColorPrimary">@android:color/black</item>
     </style>
 
 </resources>

@@ -9,7 +9,30 @@
         <item>Pantry</item>
         <item>Fridge</item>
     </string-array>
+    <string name="feed_dialog_title">Feed Jar</string>
+    <string name="feed_dialog_page1">(1of2)</string>
+    <string name="feed_dialog_page2">(2of2)</string>
+    <string name="pick_flour">Choose flour</string>
+    <string-array name="flour_array">
+        <item>Flour 1</item>
+        <item>Flour 2</item>
+        <item>Flour 3</item>
+        <item>Flour 4</item>
+    </string-array>
+    <string name="pick_water">Choose water</string>
+    <string-array name="water_array">
+        <item>Water 1</item>
+        <item>Water 2</item>
+        <item>Water 3</item>
+        <item>Water 4</item>
+    </string-array>
+    <string name="water1">Water 1</string>
+    <string name="water2">Water 2</string>
+    <string name="water3">Water 3</string>
+    <string name="water4">Water 4</string>
     <string name="lid_button_add_lid">LID</string>
+    <string name="feed_confirm">Feed</string>
+    <string name="feed_cancel">Cancel</string>
     <string name="lid_button_remove_lid">DELID</string>
     <string name="feed_button">FEED</string>
     <string name="location_temp_fridge">40°F</string>

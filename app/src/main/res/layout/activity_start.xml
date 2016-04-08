@@ -107,7 +107,7 @@
             android:theme="@style/AppTheme.Button"
             android:text="@string/feed_button"
             android:id="@+id/feed_button"
-            android:onClick="feedJar"
+            android:onClick="onfeedJar"
             android:enabled="true" />
 
         <android.support.v4.widget.Space

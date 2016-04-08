@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 /**
@@ -15,7 +14,7 @@ public class LocationDialog extends DialogFragment {
 
 
     public interface LocationChoiceListener {
-        void onChoiceMade(int location_id);
+        void onLocationChoiceMade(int location_id);
     }
 
     @Override
@@ -26,7 +25,7 @@ public class LocationDialog extends DialogFragment {
                     public void onClick(DialogInterface dialog, int location_id) {
                         //0=counter, 1=pantry, 2=fridge
                         LocationChoiceListener activity = (LocationChoiceListener) getActivity();
-                        activity.onChoiceMade(location_id);
+                        activity.onLocationChoiceMade(location_id);
                     }
                 });
         return builder.create();
