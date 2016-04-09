@@ -35,6 +35,6 @@
     <string name="feed_cancel">Cancel</string>
     <string name="lid_button_remove_lid">DELID</string>
     <string name="feed_button">FEED</string>
-    <string name="location_temp_fridge">40°F</string>
-    <string name="location_temp_pantry">70°F</string>
+    <string name="location_temp_fridge">40</string>
+    <string name="location_temp_pantry">70</string>
 </resources>

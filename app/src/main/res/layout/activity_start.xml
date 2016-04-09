@@ -107,7 +107,7 @@
             android:theme="@style/AppTheme.Button"
             android:text="@string/feed_button"
             android:id="@+id/feed_button"
-            android:onClick="onfeedJar"
+            android:onClick="onFeedJar"
             android:enabled="true" />
 
         <android.support.v4.widget.Space
@@ -125,7 +125,9 @@
         android:scaleType="fitXY"
         android:layout_centerHorizontal="true"
         android:layout_alignTop="@+id/location_background"
-        android:layout_marginTop="132.5dp" />
+        android:layout_marginTop="132.5dp"
+        android:nestedScrollingEnabled="false"
+        android:onClick="checkJarComposition" />
 
     <ImageView
         android:layout_width="wrap_content"
