@@ -57,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="@string/location_temp_pantry"
+                android:text="70°F"
                 android:id="@+id/temp_text"
                 android:textAlignment="textEnd"
                 android:layout_alignParentEnd="true"
