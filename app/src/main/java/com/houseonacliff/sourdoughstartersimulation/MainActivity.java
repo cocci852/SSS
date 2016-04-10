@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -40,8 +41,8 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     final int MY_PERMISSIONS_REQUEST_COURSE_LOCATION = 10;
 
     //States
-    boolean isJarFull = false;
-    boolean isLidOn = false;
+    boolean isJarFull;
+    boolean isLidOn;
     int currentTemp;
     int[] ambientYeast;
     int[] ambientLAB;
@@ -93,25 +94,17 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     //dialogs
     LocationDialog locationMenu = new LocationDialog();
     FeedDialog feedMenu = new FeedDialog();
+    JarCompositionDialog jarCompDialog = new JarCompositionDialog();
 
     //Jar content components
     //yeast types
-    MicrobeType yeast1;
-    MicrobeType yeast2;
-    MicrobeType yeast3;
-    MicrobeType yeast4;
+    MicrobeType[] yeast;
 
     //LAB types
-    MicrobeType lab1;
-    MicrobeType lab2;
-    MicrobeType lab3;
-    MicrobeType lab4;
+    MicrobeType[] lab;
 
     //Bad microbe types
-    MicrobeType bad1;
-    MicrobeType bad2;
-    MicrobeType bad3;
-    MicrobeType bad4;
+    MicrobeType[] bad;
 
     //Flour Types
     FlourType[] flour;
@@ -124,6 +117,9 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        isJarFull = false;
+        isLidOn = false;
+        jarComposition = new JarComposition();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
@@ -156,30 +152,35 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
         //Initialize Jar content components
         //yeast
-        yeast1 = new MicrobeType(1, 3, 1, 3, 0, 3, 3, new int[]{3, 1, 3}, new float[]{4.28792058006871f, 0.355788444138025f, 17f}, 0);
-        yeast2 = new MicrobeType(3, 2, 3, 3, 1, 1, 1, new int[]{3, 1, 3}, new float[]{4.30664666041051f, 0.986272580647719f, 76f}, 0);
-        yeast3 = new MicrobeType(2, 2, 1, 2, 1, 1, 2, new int[]{3, 1, 3}, new float[]{4.76127193407772f, 0.588259154336376f, 38f}, 0);
-        yeast4 = new MicrobeType(1, 2, 2, 1, 0, 1, 3, new int[]{3, 1, 3}, new float[]{4.65521120178445f, 0.809170281265839f, 20f}, 0);
+        yeast = new MicrobeType[4];
+        yeast[0] = new MicrobeType(1, 3, 1, 3, 0, 3, 3, new int[]{3, 1, 3}, new float[]{4.28792058006871f, 0.355788444138025f, 17f}, 0);
+        yeast[1] = new MicrobeType(3, 2, 3, 3, 1, 1, 1, new int[]{3, 1, 3}, new float[]{4.30664666041051f, 0.986272580647719f, 76f}, 0);
+        yeast[2] = new MicrobeType(2, 2, 1, 2, 1, 1, 2, new int[]{3, 1, 3}, new float[]{4.76127193407772f, 0.588259154336376f, 38f}, 0);
+        yeast[3] = new MicrobeType(1, 2, 2, 1, 0, 1, 3, new int[]{3, 1, 3}, new float[]{4.65521120178445f, 0.809170281265839f, 20f}, 0);
 
         //LAB
-        lab1 = new MicrobeType(1, 1, 1, 1, 3, 1, 4, new int[]{4, 2, 4}, new float[]{4.00977412763703f, 1f, 13f}, 3);
-        lab2 = new MicrobeType(1, 2, 1, 2, 4, 1, 4, new int[]{4, 2, 4}, new float[]{4.95378936758775f, 1f, 72f}, 2);
-        lab3 = new MicrobeType(1, 2, 2, 2, 3, 1, 4, new int[]{4, 2, 4}, new float[]{4.20273945510692f, 1f, 94f}, 1);
-        lab4 = new MicrobeType(1, 1, 2, 2, 2, 1, 4, new int[]{4, 2, 4}, new float[]{4.55963149213567f, 1f, 81f}, 1);
+        lab = new MicrobeType[4];
+        lab[0] = new MicrobeType(1, 1, 1, 1, 3, 1, 4, new int[]{4, 2, 4}, new float[]{4.00977412763703f, 1f, 13f}, 3);
+        lab[1] = new MicrobeType(1, 2, 1, 2, 4, 1, 4, new int[]{4, 2, 4}, new float[]{4.95378936758775f, 1f, 72f}, 2);
+        lab[2] = new MicrobeType(1, 2, 2, 2, 3, 1, 4, new int[]{4, 2, 4}, new float[]{4.20273945510692f, 1f, 94f}, 1);
+        lab[3] = new MicrobeType(1, 1, 2, 2, 2, 1, 4, new int[]{4, 2, 4}, new float[]{4.55963149213567f, 1f, 81f}, 1);
 
         //Bad microbes
-        bad1 = new MicrobeType(1, 2, 1, 2, 2, 2, 2, new int[]{4, 0, 4}, new float[]{4.4885970539606f, 6.31175492054399f, 6f}, 0);
-        bad2 = new MicrobeType(2, 1, 2, 2, 2, 2, 3, new int[]{4, 0, 4}, new float[]{4.75725147750113f, 0.117588900213596f, 80f}, 0);
-        bad3 = new MicrobeType(1, 2, 2, 2, 2, 1, 3, new int[]{4, 0, 4}, new float[]{4.14146938539871f, 2.50421479278808f, 73f}, 0);
-        bad4 = new MicrobeType(2, 2, 2, 1, 2, 1, 2, new int[]{4, 0, 4}, new float[]{4.2435920990729f, 1.89660960805486f, 35f}, 0);
+        bad = new MicrobeType[4];
+        bad[0] = new MicrobeType(1, 2, 1, 2, 2, 2, 2, new int[]{4, 0, 4}, new float[]{4.4885970539606f, 6.31175492054399f, 6f}, 0);
+        bad[0] = new MicrobeType(2, 1, 2, 2, 2, 2, 3, new int[]{4, 0, 4}, new float[]{4.75725147750113f, 0.117588900213596f, 80f}, 0);
+        bad[0] = new MicrobeType(1, 2, 2, 2, 2, 1, 3, new int[]{4, 0, 4}, new float[]{4.14146938539871f, 2.50421479278808f, 73f}, 0);
+        bad[0] = new MicrobeType(2, 2, 2, 1, 2, 1, 2, new int[]{4, 0, 4}, new float[]{4.2435920990729f, 1.89660960805486f, 35f}, 0);
 
         //Four
+        flour = new FlourType[4];
         flour[0] = new FlourType(836192, 145889, 248191, 515524, 245060, 290055);
         flour[1] = new FlourType(103640, 535219, 740826, 662230, 576043, 851554);
         flour[2] = new FlourType(794261, 969295, 333176, 156855, 413494, 982222);
         flour[3] = new FlourType(939548, 163878, 831923, 987953, 900974, 987204);
 
         //Water
+        water = new WaterType[4];
         water[0] = new WaterType(50917, 74175957);
         water[1] = new WaterType(34769, 5160676);
         water[2] = new WaterType(71388, 196);
@@ -259,8 +260,14 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     }
 
     //Tap on jar to view composition, only shows microbe composition and pH
-    public void checkJarComposition() {
-
+    public void checkJarComposition(View v) {
+        if (isJarFull) {
+            jarCompDialog.show(getFragmentManager(), "contents");
+        }
+        else {
+            Toast nothingInJar = Toast.makeText(this, getString(R.string.jar_is_empty), Toast.LENGTH_SHORT);
+            nothingInJar.show();
+        }
     }
 
 
@@ -283,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             lidObject.animate().translationY(lidTranslationOff).alpha(0f).setDuration(250);
         }
         jarObject.animate().translationY(lidTranslationOff).alpha(0f).setDuration(500);
-        feedMenu.show(getFragmentManager(), "flour");
+        feedMenu.show(getFragmentManager(), "feed");
     }
 
     @Override
@@ -291,7 +298,6 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         if (flour_id != -1) {
             if (!isJarFull) {
                 jarObject.setImageResource(R.drawable.jar_full_nolid);
-                isJarFull = true;
             }
             feedJar(flour_id, water_id);
         }
@@ -303,7 +309,8 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     }
 
     public void feedJar(int flour_id, int water_id) {
-        jarComposition.feedJar(currentTemp, isLidOn, isJarFull, flour[flour_id],water[water_id],ambientYeast,ambientLAB, ambientBad);
+        jarComposition.feedJar(isLidOn, isJarFull, flour[flour_id],water[water_id], ambientYeast, ambientLAB, ambientBad);
+        isJarFull = true;
     }
 
     //Click to change location of Jar
@@ -383,22 +390,26 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             weatherQueue.add(weatherRequest);
         }
 
+        Log.e("Get data", "Start");
         //Get ambient yeast levels from bitmaps
         int latitudePixel = -(recentLatitude - 90);
         int longitudePixel = recentLongitude + 180;
 
+        ambientYeast = new int[4];
         int yeastPixel = yeastMap1.getPixel(longitudePixel, latitudePixel);
         ambientYeast[0] = Color.red(yeastPixel);
         ambientYeast[1] = Color.blue(yeastPixel);
         ambientYeast[2] = Color.green(yeastPixel);
         ambientYeast[3] = Color.alpha(yeastPixel);
 
+        ambientLAB = new int[4];
         int labPixel = labMap1.getPixel(longitudePixel, latitudePixel);
         ambientLAB[0] = Color.red(labPixel);
         ambientLAB[1] = Color.blue(labPixel);
         ambientLAB[2] = Color.green(labPixel);
         ambientLAB[3] = Color.alpha(labPixel);
 
+        ambientBad = new int[4];
         int badPixel = badMap1.getPixel(longitudePixel, latitudePixel);
         ambientBad[0] = Color.red(badPixel);
         ambientBad[1] = Color.blue(badPixel);
@@ -436,11 +447,15 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     }
 
-    //Save data on pause
+    //TODO:Save data on pause
     @Override
     public void onPause() {
         super.onPause();
 
 
+    }
+
+    public JarComposition getJarComposition() {
+        return jarComposition;
     }
 }

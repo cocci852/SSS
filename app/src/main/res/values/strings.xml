@@ -37,4 +37,34 @@
     <string name="feed_button">FEED</string>
     <string name="location_temp_fridge">40</string>
     <string name="location_temp_pantry">70</string>
+
+    <string name="jar_contents_title">Starter Analysis Report</string>
+    <string name="jar_chemical_subtitle">Basic Chemical Analysis</string>
+    <string name="jar_chemical_pH">pH: </string>
+    <string name="jar_chemical_TDS">Conductivity (µS/cm): </string>
+    <string name="jar_microbe_subtitle">Microbial Load</string>
+    <string name="jar_yeast_subtitle">Yeasts</string>
+    <string name="jar_lab_subtitle">Lactic Acid Bacteria</string>
+    <string name="jar_bad_subtitle">Other</string>
+    <string-array name="yeast_array">
+        <item>Yeast 1</item>
+        <item>Yeast 2</item>
+        <item>Yeast 3</item>
+        <item>Yeast 4</item>
+    </string-array>
+    <string-array name="lab_array">
+        <item>LAB 1</item>
+        <item>LAB 2</item>
+        <item>LAB 3</item>
+        <item>LAB 4</item>
+    </string-array>
+    <string-array name="bad_array">
+        <item>Bad 1</item>
+        <item>Bad 2</item>
+        <item>Bad 3</item>
+        <item>Bad 4</item>
+    </string-array>
+    <string name="jar_contents_close">Close</string>
+
+    <string name="jar_is_empty">Nothing to view</string>
 </resources>

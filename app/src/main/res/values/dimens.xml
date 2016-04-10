@@ -2,6 +2,7 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="composition_entry_margin">4dp</dimen>
     <dimen name="jar_position_off">700dp</dimen>
     <dimen name="jar_position_neutral">206dp</dimen>
     <item name="lid_position_off" format="float" type="dimen">100</item>
