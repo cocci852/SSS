@@ -2,6 +2,7 @@ package com.houseonacliff.sourdoughstartersimulation;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -40,13 +41,22 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     //Permissions Constants
     final int MY_PERMISSIONS_REQUEST_COURSE_LOCATION = 10;
 
-    //States
+    //Shared preferences name
+    public static final String JAR_STATE_NAME = "JarCompEnvironData";
+
+    //Globals
+    final static int PANTRY = 1;
+    final static int COUNTER = 2;
+    final static int FRIDGE = 3;
+
+    //Current state
     boolean isJarFull;
     boolean isLidOn;
     int currentTemp;
     int[] ambientYeast;
     int[] ambientLAB;
     int[] ambientBad;
+    int currentJarLocation;
 
     Bitmap yeastMap1;
     Bitmap labMap1;
@@ -66,8 +76,9 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
 
     //weather api: apiCall1 + lat + apiCall2 + lon
-    String apiCall1 = "http://api.openweathermap.org/data/2.5/weather?appid=d02ab782a31da47683902b8451aaf31c&units=imperial&lat=";
-    String apiCall2 = "&lon=";
+    String apiCall1 = "http://api.openweathermap.org/data/2.5/weather?appid=";
+    String apiCall2 = "&units=imperial&lat=";
+    String apiCall3 = "&lon=";
 
     static RequestQueue weatherQueue;
 
@@ -114,9 +125,12 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     JarComposition jarComposition;
 
+    SQLiteDatabase persistenceDatabase;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        persistenceDatabase = openOrCreateDatabase(JAR_STATE_NAME,MODE_PRIVATE,null);
         isJarFull = false;
         isLidOn = false;
         jarComposition = new JarComposition();
@@ -327,16 +341,19 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             locationTextView.setText(R.string.location_counter);
             locationTemperatureTextView.setText(recentTemp+"°F");
             currentTemp = recentTemp;
+            currentJarLocation = COUNTER;
         } else if (location_id == 1) {
             backgroundObject.setImageResource(R.drawable.background_pantry);
             locationTextView.setText(R.string.location_pantry);
             locationTemperatureTextView.setText(pantryTemp+"°F");
             currentTemp = pantryTemp;
+            currentJarLocation = PANTRY;
         } else if (location_id == 2) {
             backgroundObject.setImageResource(R.drawable.background_fridge);
             locationTextView.setText(R.string.location_fridge);
             locationTemperatureTextView.setText(fridgeTemp+"°F");
             currentTemp = fridgeTemp;
+            currentJarLocation = FRIDGE;
         }
     }
 
@@ -365,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             else if (recentLongitude < -180) {
                 recentLongitude = -180;
             }
-            String apiCall = apiCall1 + recentLatitude + apiCall2 +recentLongitude;
+            String apiCall = apiCall1 + getString(R.string.api_key) + apiCall2 + recentLatitude + apiCall3 +recentLongitude;
 
             JsonObjectRequest weatherRequest = new JsonObjectRequest(Request.Method.GET, apiCall, null, new Response.Listener<JSONObject>() {
 
@@ -451,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     @Override
     public void onPause() {
         super.onPause();
-
+        //persistenceDatabase
 
     }
 
