@@ -1,13 +1,16 @@
 package com.houseonacliff.sourdoughstartersimulation;
 
 import android.Manifest;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Location;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -26,7 +29,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -35,14 +37,14 @@ import com.google.android.gms.common.ConnectionResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.GregorianCalendar;
+
 
 public class MainActivity extends AppCompatActivity implements LocationDialog.LocationChoiceListener, FeedDialog.FeedChoiceListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     //Permissions Constants
     final int MY_PERMISSIONS_REQUEST_COURSE_LOCATION = 10;
-
-    //Shared preferences name
-    public static final String JAR_STATE_NAME = "JarCompEnvironData";
 
     //Globals
     final static int PANTRY = 1;
@@ -125,12 +127,13 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     JarComposition jarComposition;
 
-    SQLiteDatabase persistenceDatabase;
+    JarDatabaseHelper jarDatabaseHelper = new JarDatabaseHelper(this);
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        persistenceDatabase = openOrCreateDatabase(JAR_STATE_NAME,MODE_PRIVATE,null);
+
         isJarFull = false;
         isLidOn = false;
         jarComposition = new JarComposition();
@@ -221,57 +224,98 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     protected void onStart() {
         mGoogleApiClient.connect();
         super.onStart();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.houseonacliff.sourdoughstartersimulation/http/host/path")
+        //Get SQLite data
+        SQLiteDatabase jarDataBase = jarDatabaseHelper.getReadableDatabase();
+
+        String[] projection = new String[]{
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_TIME,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_CURRENT_TEMP,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3,
+                JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4,
+        };
+
+        Cursor c = jarDataBase.query(
+                JarDatabaseContract.JarDatabaseEntry.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                JarDatabaseContract.JarDatabaseEntry._ID + " DESC",
+                "1"
         );
-        AppIndex.AppIndexApi.start(mGoogleApiClient, viewAction);
+
+        c.moveToFirst();
+        jarComposition.sucroseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE));
+        jarComposition.fructoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE));
+        jarComposition.lactoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE));
+        jarComposition.glucoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE));
+        jarComposition.maltoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE));
+        jarComposition.micronutrientLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO));
+        jarComposition.hLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL));
+        jarComposition.yeastLevel[0]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1));
+        jarComposition.yeastLevel[1]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2));
+        jarComposition.yeastLevel[2]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3));
+        jarComposition.yeastLevel[3]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4));
+        jarComposition.labLevel[0]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1));
+        jarComposition.labLevel[1]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2));
+        jarComposition.labLevel[2]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3));
+        jarComposition.labLevel[3]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4));
+        jarComposition.badLevel[0]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1));
+        jarComposition.badLevel[1]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2));
+        jarComposition.badLevel[2]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3));
+        jarComposition.badLevel[3]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4));
+        c.close();
+
+        //Get sharedpreferences data
+        SharedPreferences jarPreferences = getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE);
+        isJarFull =jarPreferences.getBoolean(getString(R.string.shared_preferences_isjarfull), false);
+        isLidOn =jarPreferences.getBoolean(getString(R.string.shared_preferences_islidon), false);
+        currentJarLocation =jarPreferences.getInt(getString(R.string.shared_preferences_currentjarlocation),0);
+        currentTemp =jarPreferences.getInt(getString(R.string.shared_preferences_currenttemp),0);
+        ambientYeast[0] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast1), 0);
+        ambientYeast[1] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast2), 0);
+        ambientYeast[2] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast3), 0);
+        ambientYeast[3] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast4), 0);
+        ambientLAB[0] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab1), 0);
+        ambientLAB[1] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab2), 0);
+        ambientLAB[2] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab3), 0);
+        ambientLAB[3] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab4), 0);
+        ambientBad[0]= jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad1), 0);
+        ambientBad[1] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad2), 0);
+        ambientBad[2] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad3), 0);
+        ambientBad[3] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad4), 0);
+        onStart();
+
+        if (isJarFull) {
+            jarObject.setImageResource(R.drawable.jar_full_nolid);
+        } else {
+            jarObject.setImageResource(R.drawable.jar_full_nolid);
+        }
     }
 
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.houseonacliff.sourdoughstartersimulation/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(mGoogleApiClient, viewAction);
     }
 
-    public void onClick(int location_id) {
-
-    }
-
-
-    public void enableButtons() {
-        lidButton = (Button) findViewById(R.id.lid_button);
-        feedButton = (Button) findViewById(R.id.feed_button);
-        lidButton.setEnabled(true);
-        feedButton.setEnabled(true);
-    }
-
-    public void disableButtons() {
-        lidButton = (Button) findViewById(R.id.lid_button);
-        feedButton = (Button) findViewById(R.id.feed_button);
-        lidButton.setEnabled(false);
-        feedButton.setEnabled(false);
-    }
 
     //Tap on jar to view composition, only shows microbe composition and pH
     public void checkJarComposition(View v) {
@@ -407,7 +451,6 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             weatherQueue.add(weatherRequest);
         }
 
-        Log.e("Get data", "Start");
         //Get ambient yeast levels from bitmaps
         int latitudePixel = -(recentLatitude - 90);
         int longitudePixel = recentLongitude + 180;
@@ -464,11 +507,67 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     }
 
-    //TODO:Save data on pause
     @Override
     public void onPause() {
         super.onPause();
         //persistenceDatabase
+        SQLiteDatabase jarDataBase = jarDatabaseHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        SimpleDateFormat dateTime = new SimpleDateFormat("yyyy-MM-dd HH:MM");
+
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_TIME, dateTime.format(GregorianCalendar.getInstance().getTime()));
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_CURRENT_TEMP, currentTemp);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE, jarComposition.sucroseLevel);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE, jarComposition.fructoseLevel);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE, jarComposition.lactoseLevel);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE, jarComposition.glucoseLevel);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE, jarComposition.maltoseLevel);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO, jarComposition.micronutrientLevel);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL, jarComposition.hLevel);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1, jarComposition.yeastLevel[0]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2, jarComposition.yeastLevel[1]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3, jarComposition.yeastLevel[2]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4, jarComposition.yeastLevel[3]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1, jarComposition.labLevel[0]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2, jarComposition.labLevel[1]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3, jarComposition.labLevel[2]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4, jarComposition.labLevel[3]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1, jarComposition.badLevel[0]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2, jarComposition.badLevel[1]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3, jarComposition.badLevel[2]);
+        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4, jarComposition.badLevel[3]);
+        jarDataBase.insert(JarDatabaseContract.JarDatabaseEntry.TABLE_NAME, null, values);
+
+        SharedPreferences jarPreferences = getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = jarPreferences.edit();
+        editor.putBoolean(getString(R.string.shared_preferences_isjarfull), isJarFull);
+        editor.putBoolean(getString(R.string.shared_preferences_islidon), isLidOn);
+        editor.putInt(getString(R.string.shared_preferences_currentjarlocation), currentJarLocation);
+        editor.putInt(getString(R.string.shared_preferences_currenttemp), currentTemp);
+        editor.putInt(getString(R.string.shared_preferences_ambientyeast1), ambientYeast[0]);
+        editor.putInt(getString(R.string.shared_preferences_ambientyeast2), ambientYeast[1]);
+        editor.putInt(getString(R.string.shared_preferences_ambientyeast3), ambientYeast[2]);
+        editor.putInt(getString(R.string.shared_preferences_ambientyeast4), ambientYeast[3]);
+        editor.putInt(getString(R.string.shared_preferences_ambientlab1), ambientLAB[0]);
+        editor.putInt(getString(R.string.shared_preferences_ambientlab2), ambientLAB[1]);
+        editor.putInt(getString(R.string.shared_preferences_ambientlab3), ambientLAB[2]);
+        editor.putInt(getString(R.string.shared_preferences_ambientlab4), ambientLAB[3]);
+        editor.putInt(getString(R.string.shared_preferences_ambientbad1), ambientBad[0]);
+        editor.putInt(getString(R.string.shared_preferences_ambientbad2), ambientBad[1]);
+        editor.putInt(getString(R.string.shared_preferences_ambientbad3), ambientBad[2]);
+        editor.putInt(getString(R.string.shared_preferences_ambientbad4), ambientBad[3]);
+        editor.apply();
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+
 
     }
 

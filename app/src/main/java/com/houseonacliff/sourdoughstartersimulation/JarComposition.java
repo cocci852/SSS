@@ -7,14 +7,14 @@ import android.util.Log;
  */
 public class JarComposition {
     //Sugars
-    int sucroseLevel;
-    int fructoseLevel;
-    int lactoseLevel;
-    int glucoseLevel;
-    int maltoseLevel;
+    long sucroseLevel;
+    long fructoseLevel;
+    long lactoseLevel;
+    long glucoseLevel;
+    long maltoseLevel;
 
     //Micronutrients (bulk)
-    int micronutrientLevel;
+    long micronutrientLevel;
 
     //pH = -log(HLevel)
     long hLevel;
