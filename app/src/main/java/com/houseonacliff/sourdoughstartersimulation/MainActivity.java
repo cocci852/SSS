@@ -38,7 +38,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Random;
+import java.util.TimeZone;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity implements LocationDialog.LocationChoiceListener, FeedDialog.FeedChoiceListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -47,13 +52,14 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     final int MY_PERMISSIONS_REQUEST_COURSE_LOCATION = 10;
 
     //Globals
+    final static int COUNTER = 0;
     final static int PANTRY = 1;
-    final static int COUNTER = 2;
-    final static int FRIDGE = 3;
+    final static int FRIDGE = 2;
 
     //Current state
     boolean isJarFull;
     boolean isLidOn;
+    boolean justFed;
     int currentTemp;
     int[] ambientYeast;
     int[] ambientLAB;
@@ -127,17 +133,24 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     JarComposition jarComposition;
 
-    JarDatabaseHelper jarDatabaseHelper = new JarDatabaseHelper(this);
+    JarDatabaseHelper jarDatabaseHelper;
 
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
+        jarDatabaseHelper = new JarDatabaseHelper(getBaseContext());
         isJarFull = false;
         isLidOn = false;
+        justFed = false;
         jarComposition = new JarComposition();
-        super.onCreate(savedInstanceState);
+        ambientYeast = new int[4];
+        ambientLAB = new int[4];
+        ambientBad = new int[4];
+
+
         setContentView(R.layout.activity_start);
 
         weatherQueue = Volley.newRequestQueue(this);
@@ -185,9 +198,9 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         //Bad microbes
         bad = new MicrobeType[4];
         bad[0] = new MicrobeType(1, 2, 1, 2, 2, 2, 2, new int[]{4, 0, 4}, new float[]{4.4885970539606f, 6.31175492054399f, 6f}, 0);
-        bad[0] = new MicrobeType(2, 1, 2, 2, 2, 2, 3, new int[]{4, 0, 4}, new float[]{4.75725147750113f, 0.117588900213596f, 80f}, 0);
-        bad[0] = new MicrobeType(1, 2, 2, 2, 2, 1, 3, new int[]{4, 0, 4}, new float[]{4.14146938539871f, 2.50421479278808f, 73f}, 0);
-        bad[0] = new MicrobeType(2, 2, 2, 1, 2, 1, 2, new int[]{4, 0, 4}, new float[]{4.2435920990729f, 1.89660960805486f, 35f}, 0);
+        bad[1] = new MicrobeType(2, 1, 2, 2, 2, 2, 3, new int[]{4, 0, 4}, new float[]{4.75725147750113f, 0.117588900213596f, 80f}, 0);
+        bad[2] = new MicrobeType(1, 2, 2, 2, 2, 1, 3, new int[]{4, 0, 4}, new float[]{4.14146938539871f, 2.50421479278808f, 73f}, 0);
+        bad[3] = new MicrobeType(2, 2, 2, 1, 2, 1, 2, new int[]{4, 0, 4}, new float[]{4.2435920990729f, 1.89660960805486f, 35f}, 0);
 
         //Four
         flour = new FlourType[4];
@@ -262,52 +275,64 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
                 "1"
         );
 
-        c.moveToFirst();
-        jarComposition.sucroseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE));
-        jarComposition.fructoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE));
-        jarComposition.lactoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE));
-        jarComposition.glucoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE));
-        jarComposition.maltoseLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE));
-        jarComposition.micronutrientLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO));
-        jarComposition.hLevel=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL));
-        jarComposition.yeastLevel[0]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1));
-        jarComposition.yeastLevel[1]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2));
-        jarComposition.yeastLevel[2]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3));
-        jarComposition.yeastLevel[3]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4));
-        jarComposition.labLevel[0]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1));
-        jarComposition.labLevel[1]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2));
-        jarComposition.labLevel[2]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3));
-        jarComposition.labLevel[3]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4));
-        jarComposition.badLevel[0]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1));
-        jarComposition.badLevel[1]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2));
-        jarComposition.badLevel[2]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3));
-        jarComposition.badLevel[3]=c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4));
-        c.close();
+        if (c.getCount() == 1) {
+            c.moveToFirst();
+            jarComposition.sucroseLevel = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE));
+            jarComposition.fructoseLevel = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE));
+            jarComposition.lactoseLevel = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE));
+            jarComposition.glucoseLevel = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE));
+            jarComposition.maltoseLevel = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE));
+            jarComposition.micronutrientLevel = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO));
+            jarComposition.hLevel = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL));
+            jarComposition.yeastLevel[0] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1));
+            jarComposition.yeastLevel[1] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2));
+            jarComposition.yeastLevel[2] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3));
+            jarComposition.yeastLevel[3] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4));
+            jarComposition.labLevel[0] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1));
+            jarComposition.labLevel[1] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2));
+            jarComposition.labLevel[2] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3));
+            jarComposition.labLevel[3] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4));
+            jarComposition.badLevel[0] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1));
+            jarComposition.badLevel[1] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2));
+            jarComposition.badLevel[2] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3));
+            jarComposition.badLevel[3] = c.getLong(c.getColumnIndex(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4));
+            c.close();
 
-        //Get sharedpreferences data
-        SharedPreferences jarPreferences = getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE);
-        isJarFull =jarPreferences.getBoolean(getString(R.string.shared_preferences_isjarfull), false);
-        isLidOn =jarPreferences.getBoolean(getString(R.string.shared_preferences_islidon), false);
-        currentJarLocation =jarPreferences.getInt(getString(R.string.shared_preferences_currentjarlocation),0);
-        currentTemp =jarPreferences.getInt(getString(R.string.shared_preferences_currenttemp),0);
-        ambientYeast[0] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast1), 0);
-        ambientYeast[1] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast2), 0);
-        ambientYeast[2] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast3), 0);
-        ambientYeast[3] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast4), 0);
-        ambientLAB[0] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab1), 0);
-        ambientLAB[1] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab2), 0);
-        ambientLAB[2] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab3), 0);
-        ambientLAB[3] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab4), 0);
-        ambientBad[0]= jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad1), 0);
-        ambientBad[1] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad2), 0);
-        ambientBad[2] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad3), 0);
-        ambientBad[3] =jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad4), 0);
-        onStart();
+            //Get sharedpreferences data
+            SharedPreferences jarPreferences = getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE);
+            isJarFull = jarPreferences.getBoolean(getString(R.string.shared_preferences_isjarfull), false);
+            isLidOn = jarPreferences.getBoolean(getString(R.string.shared_preferences_islidon), false);
+            currentJarLocation = jarPreferences.getInt(getString(R.string.shared_preferences_currentjarlocation), 0);
+            currentTemp = jarPreferences.getInt(getString(R.string.shared_preferences_currenttemp), 0);
+            ambientYeast[0] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast1), 0);
+            ambientYeast[1] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast2), 0);
+            ambientYeast[2] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast3), 0);
+            ambientYeast[3] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast4), 0);
+            ambientLAB[0] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab1), 0);
+            ambientLAB[1] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab2), 0);
+            ambientLAB[2] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab3), 0);
+            ambientLAB[3] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientlab4), 0);
+            ambientBad[0] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad1), 0);
+            ambientBad[1] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad2), 0);
+            ambientBad[2] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad3), 0);
+            ambientBad[3] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad4), 0);
 
-        if (isJarFull) {
-            jarObject.setImageResource(R.drawable.jar_full_nolid);
-        } else {
-            jarObject.setImageResource(R.drawable.jar_full_nolid);
+
+            if (isJarFull) {
+                jarObject.setImageResource(R.drawable.jar_full_nolid);
+            } else {
+                jarObject.setImageResource(R.drawable.jar_empty_nolid);
+            }
+
+            if (isLidOn) {
+                lidObject.animate().translationY(lidTranslationOn).alpha(1f).setDuration(1);
+            } else {
+                lidObject.animate().translationY(lidTranslationOff).alpha(0f).setDuration(1);
+            }
+
+            recentTemp = currentTemp;
+            onLocationChoiceMade(currentJarLocation);
+
         }
     }
 
@@ -353,6 +378,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     @Override
     public void onFeedChoiceMade(int flour_id, int water_id) {
+        justFed = true;
         if (flour_id != -1) {
             if (!isJarFull) {
                 jarObject.setImageResource(R.drawable.jar_full_nolid);
@@ -496,7 +522,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
                     mGoogleApiClient.connect();
                 }
                 else {
-                    //TODO: no permision error
+                    //TODO: need permission error
                 }
                 break;
             default:
@@ -516,32 +542,17 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         ContentValues values = new ContentValues();
 
         SimpleDateFormat dateTime = new SimpleDateFormat("yyyy-MM-dd HH:MM");
-
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_TIME, dateTime.format(GregorianCalendar.getInstance().getTime()));
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_CURRENT_TEMP, currentTemp);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE, jarComposition.sucroseLevel);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE, jarComposition.fructoseLevel);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE, jarComposition.lactoseLevel);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE, jarComposition.glucoseLevel);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE, jarComposition.maltoseLevel);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO, jarComposition.micronutrientLevel);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL, jarComposition.hLevel);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1, jarComposition.yeastLevel[0]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2, jarComposition.yeastLevel[1]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3, jarComposition.yeastLevel[2]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4, jarComposition.yeastLevel[3]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1, jarComposition.labLevel[0]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2, jarComposition.labLevel[1]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3, jarComposition.labLevel[2]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4, jarComposition.labLevel[3]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1, jarComposition.badLevel[0]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2, jarComposition.badLevel[1]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3, jarComposition.badLevel[2]);
-        values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4, jarComposition.badLevel[3]);
-        jarDataBase.insert(JarDatabaseContract.JarDatabaseEntry.TABLE_NAME, null, values);
+        long currentTime = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC")).getTime().getTime();
 
         SharedPreferences jarPreferences = getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE);
+
+        long compareDate = jarPreferences.getLong(getString(R.string.shared_preferences_lastsave),0);
+        long differenceMinutes = TimeUnit.MILLISECONDS.toMinutes(currentTime - compareDate);
+
+
+
         SharedPreferences.Editor editor = jarPreferences.edit();
+
         editor.putBoolean(getString(R.string.shared_preferences_isjarfull), isJarFull);
         editor.putBoolean(getString(R.string.shared_preferences_islidon), isLidOn);
         editor.putInt(getString(R.string.shared_preferences_currentjarlocation), currentJarLocation);
@@ -558,8 +569,68 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         editor.putInt(getString(R.string.shared_preferences_ambientbad2), ambientBad[1]);
         editor.putInt(getString(R.string.shared_preferences_ambientbad3), ambientBad[2]);
         editor.putInt(getString(R.string.shared_preferences_ambientbad4), ambientBad[3]);
-        editor.apply();
 
+
+        //Only save SQL data if more that 60 minutes since last time
+        if (differenceMinutes >60) {
+
+            Random rng = ThreadLocalRandom.current();
+            jarComposition.Growth(isJarFull,differenceMinutes,currentTemp,yeast,lab,bad, rng);
+
+            editor.putLong(getString(R.string.shared_preferences_lastsave), currentTime);
+
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_TIME, dateTime.format(currentTime));
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_CURRENT_TEMP, currentTemp);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE, jarComposition.sucroseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE, jarComposition.fructoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE, jarComposition.lactoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE, jarComposition.glucoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE, jarComposition.maltoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO, jarComposition.micronutrientLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL, jarComposition.hLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1, jarComposition.yeastLevel[0]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2, jarComposition.yeastLevel[1]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3, jarComposition.yeastLevel[2]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4, jarComposition.yeastLevel[3]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1, jarComposition.labLevel[0]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2, jarComposition.labLevel[1]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3, jarComposition.labLevel[2]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4, jarComposition.labLevel[3]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1, jarComposition.badLevel[0]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2, jarComposition.badLevel[1]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3, jarComposition.badLevel[2]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4, jarComposition.badLevel[3]);
+            jarDataBase.insert(JarDatabaseContract.JarDatabaseEntry.TABLE_NAME, null, values);
+        } else if (justFed) {
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_TIME, dateTime.format(currentTime));
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_CURRENT_TEMP, currentTemp);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_SUCROSE, jarComposition.sucroseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_FRUCTOSE, jarComposition.fructoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LACTOSE, jarComposition.lactoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_GLUCOSE, jarComposition.glucoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MALTOSE, jarComposition.maltoseLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_MICRO, jarComposition.micronutrientLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_HLEVEL, jarComposition.hLevel);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_1, jarComposition.yeastLevel[0]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_2, jarComposition.yeastLevel[1]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_3, jarComposition.yeastLevel[2]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_YEAST_4, jarComposition.yeastLevel[3]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_1, jarComposition.labLevel[0]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_2, jarComposition.labLevel[1]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_3, jarComposition.labLevel[2]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_LAB_4, jarComposition.labLevel[3]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_1, jarComposition.badLevel[0]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_2, jarComposition.badLevel[1]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_3, jarComposition.badLevel[2]);
+            values.put(JarDatabaseContract.JarDatabaseEntry.COLUMN_JAR_BAD_4, jarComposition.badLevel[3]);
+            jarDataBase.insert(JarDatabaseContract.JarDatabaseEntry.TABLE_NAME, null, values);
+        }
+
+        justFed = false;
+
+
+        //Apply data to shared preferences
+        editor.apply();
     }
 
     @Override

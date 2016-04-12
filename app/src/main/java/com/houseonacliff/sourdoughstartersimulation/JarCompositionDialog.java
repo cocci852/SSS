@@ -45,13 +45,11 @@ public class JarCompositionDialog extends DialogFragment {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //TODO: Make more generic
         jarInfo = new JarCompositionData(((MainActivity) getActivity()).getJarComposition(),
                 getResources().getStringArray(R.array.yeast_array),
                 getResources().getStringArray(R.array.lab_array),
                 getResources().getStringArray(R.array.bad_array));
 
-        //Merge sets and subtitles TODO: Come up with better way
         int index = 0;
         entrySet = new String[jarInfo.yeastNames.length+jarInfo.labNames.length+jarInfo.badNames.length+7];
         dataSet = new String[jarInfo.yeastNames.length+jarInfo.labNames.length+jarInfo.badNames.length+7];

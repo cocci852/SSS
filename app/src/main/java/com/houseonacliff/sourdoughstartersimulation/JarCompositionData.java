@@ -39,7 +39,6 @@ public class JarCompositionData {
             if (yeastLevel[i] > 0) {
                 yeastNames[i] = yeastArray[i] + ": ";
                 yeastValues[i] = String.valueOf(yeastLevel[i]);
-                Log.e("Array",yeastNames[i]);
             }
         }
         for (int i = 0; i < labLevel.length; ++i) {

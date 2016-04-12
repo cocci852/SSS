@@ -24,9 +24,9 @@ public class MicrobeType {
     float pfRateFactor;
 
     //Produce H+ (LAB)
-    double HMade;
+    int HMade;
 
-    public MicrobeType (int gluc, int fruc, int sucr, int malt, int lact, int micr, int pF, int[] effectArray, float[] factorArray, double H) {
+    public MicrobeType (int gluc, int fruc, int sucr, int malt, int lact, int micr, int pF, int[] effectArray, float[] factorArray, int H) {
         glucoseCost = gluc;
         fructoseCost = fruc;
         sucroseCost = sucr;
@@ -47,7 +47,7 @@ public class MicrobeType {
 
     }
     //Rate effect
-    public float getRate(int temp, double HLevel, int[] sugars) {
+    public float getRate(int temp, long HLevel, long[] sugars) {
         float pH = (float) -Math.log10(HLevel/1000000000000d); //TODO: figure out denominator for Jar pH, 10^-7 => 7
         float percentPF = (float) 100*sugars[preferredFood]/(sugars[0]+sugars[1]+sugars[2]+sugars[3]+sugars[4]);
         //rate = tempRate * pHRate * PFRate/100
@@ -85,5 +85,9 @@ public class MicrobeType {
             rate = (float)(pfRateFactor/100*Math.pow(PF,1.5));
         }
         return rate;
+    }
+
+    public long[] getCost (long growth) {
+        return new long[]{growth * glucoseCost, growth * fructoseCost, growth * sucroseCost, growth * lactoseCost, growth * maltoseCost, growth * microCost, growth*HMade};
     }
 }
