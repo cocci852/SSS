@@ -3,7 +3,8 @@
     android:id="@+id/jar_contents"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:clickable="true">
 
     <TextView
         android:layout_width="fill_parent"
@@ -11,7 +12,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/jar_contents_title"
         android:id="@+id/jar_composition_title"
-        />
+        android:onClick="ClearJar" />
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"

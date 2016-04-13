@@ -117,13 +117,13 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     //Jar content components
     //yeast types
-    MicrobeType[] yeast;
+    public MicrobeType[] yeast;
 
     //LAB types
-    MicrobeType[] lab;
+    public MicrobeType[] lab;
 
     //Bad microbe types
-    MicrobeType[] bad;
+    public MicrobeType[] bad;
 
     //Flour Types
     FlourType[] flour;
@@ -135,11 +135,21 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
     JarDatabaseHelper jarDatabaseHelper;
 
+    AlarmReceiver repeatGrowth;
+
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        repeatGrowth = new AlarmReceiver();
+
+        if (repeatGrowth != null) {
+            repeatGrowth.CancelAlarm(this.getApplicationContext());
+            repeatGrowth.SetAlarm(this.getApplicationContext());
+        }
 
         jarDatabaseHelper = new JarDatabaseHelper(getBaseContext());
         isJarFull = false;
@@ -204,17 +214,17 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
         //Four
         flour = new FlourType[4];
-        flour[0] = new FlourType(836192, 145889, 248191, 515524, 245060, 290055);
-        flour[1] = new FlourType(103640, 535219, 740826, 662230, 576043, 851554);
-        flour[2] = new FlourType(794261, 969295, 333176, 156855, 413494, 982222);
-        flour[3] = new FlourType(939548, 163878, 831923, 987953, 900974, 987204);
+        flour[0] = new FlourType(8361920, 1458890, 2481910, 5155240, 2450600, 290055);
+        flour[1] = new FlourType(1036400, 5352190, 7408260, 6622300, 5760430, 851554);
+        flour[2] = new FlourType(7942610, 9692950, 3331760, 1568550, 4134940, 982222);
+        flour[3] = new FlourType(9395480, 1638780, 8319230, 9879530, 9009740, 987204);
 
         //Water
         water = new WaterType[4];
-        water[0] = new WaterType(50917, 74175957);
-        water[1] = new WaterType(34769, 5160676);
-        water[2] = new WaterType(71388, 196);
-        water[3] = new WaterType(82256, 52185);
+        water[0] = new WaterType(509170, 501861);
+        water[1] = new WaterType(347690, 2744);
+        water[2] = new WaterType(713880, 196);
+        water[3] = new WaterType(822560, 52185);
 
         //Pull pantry and fridge temps from strings xml
         try {
@@ -303,7 +313,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             isJarFull = jarPreferences.getBoolean(getString(R.string.shared_preferences_isjarfull), false);
             isLidOn = jarPreferences.getBoolean(getString(R.string.shared_preferences_islidon), false);
             currentJarLocation = jarPreferences.getInt(getString(R.string.shared_preferences_currentjarlocation), 0);
-            currentTemp = jarPreferences.getInt(getString(R.string.shared_preferences_currenttemp), 0);
+            currentTemp = jarPreferences.getInt(getString(R.string.shared_preferences_currenttemp), 60);
             ambientYeast[0] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast1), 0);
             ambientYeast[1] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast2), 0);
             ambientYeast[2] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientyeast3), 0);
@@ -317,6 +327,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
             ambientBad[2] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad3), 0);
             ambientBad[3] = jarPreferences.getInt(getString(R.string.shared_preferences_ambientbad4), 0);
 
+            jarDataBase.close();
 
             if (isJarFull) {
                 jarObject.setImageResource(R.drawable.jar_full_nolid);
@@ -330,8 +341,10 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
                 lidObject.animate().translationY(lidTranslationOff).alpha(0f).setDuration(1);
             }
 
+
             recentTemp = currentTemp;
             onLocationChoiceMade(currentJarLocation);
+
 
         }
     }
@@ -395,6 +408,16 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
     public void feedJar(int flour_id, int water_id) {
         jarComposition.feedJar(isLidOn, isJarFull, flour[flour_id],water[water_id], ambientYeast, ambientLAB, ambientBad);
         isJarFull = true;
+    }
+
+    //For Debug - Clear Database and saved preferences
+    public void ClearJar(View view) {
+        jarDatabaseHelper.getWritableDatabase().delete(JarDatabaseContract.JarDatabaseEntry.TABLE_NAME,null, null);
+        SharedPreferences jarPreferences = getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE);
+        jarPreferences.edit().clear();
+        jarPreferences.edit().commit();
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(10);
     }
 
     //Click to change location of Jar
@@ -556,6 +579,8 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
         editor.putBoolean(getString(R.string.shared_preferences_isjarfull), isJarFull);
         editor.putBoolean(getString(R.string.shared_preferences_islidon), isLidOn);
         editor.putInt(getString(R.string.shared_preferences_currentjarlocation), currentJarLocation);
+        editor.putInt(getString(R.string.shared_preferences_recentlat), recentLatitude);
+        editor.putInt(getString(R.string.shared_preferences_recentlong), recentLongitude);
         editor.putInt(getString(R.string.shared_preferences_currenttemp), currentTemp);
         editor.putInt(getString(R.string.shared_preferences_ambientyeast1), ambientYeast[0]);
         editor.putInt(getString(R.string.shared_preferences_ambientyeast2), ambientYeast[1]);
@@ -572,7 +597,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
 
         //Only save SQL data if more that 60 minutes since last time
-        if (differenceMinutes >60) {
+        if (differenceMinutes > 60) {
 
             Random rng = ThreadLocalRandom.current();
             jarComposition.Growth(isJarFull,differenceMinutes,currentTemp,yeast,lab,bad, rng);
@@ -631,6 +656,7 @@ public class MainActivity extends AppCompatActivity implements LocationDialog.Lo
 
         //Apply data to shared preferences
         editor.apply();
+        jarDataBase.close();
     }
 
     @Override

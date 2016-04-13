@@ -1,5 +1,7 @@
 package com.houseonacliff.sourdoughstartersimulation;
 
+import android.util.Log;
+
 /**
  * Created by cocci852 on 4/6/2016.
  */
@@ -51,7 +53,7 @@ public class MicrobeType {
         float pH = (float) -Math.log10(HLevel/1000000000000d); //TODO: figure out denominator for Jar pH, 10^-7 => 7
         float percentPF = (float) 100*sugars[preferredFood]/(sugars[0]+sugars[1]+sugars[2]+sugars[3]+sugars[4]);
         //rate = tempRate * pHRate * PFRate/100
-        return tempRate(temp) * pHRate(pH) * PFRate(percentPF)/100;
+        return (tempRate(temp) * pHRate(pH) * PFRate(percentPF)/100);
     }
 
     public float tempRate(int temp) {
@@ -60,13 +62,13 @@ public class MicrobeType {
             rate = tempRateFactor/8 * (temp-32);
         }
         else if (tempRateEffect == 4) {
-            rate = (float) (tempRateFactor/0.221 * (Math.exp((temp - 32)/40) - 1));
+            rate = (float) ((tempRateFactor/0.221) * (Math.exp((temp - 32f)/40f) - 1f));
         }
         return rate;
     }
 
     public float pHRate(float pH) {
-        float rate = 1;
+        float rate = 2;
         if (pHRateEffect == 1) {
             rate = (1-pHRateFactor)/7*(pH-7) + 1;
         }

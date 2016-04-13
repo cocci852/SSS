@@ -1,9 +1,11 @@
 package com.houseonacliff.sourdoughstartersimulation;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,22 +13,16 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 /**
  * Created by cocci852 on 4/8/2016.
  */
 public class JarCompositionDialog extends DialogFragment {
-    /*
-    private enum LayoutManagerType {
-        GRID_LAYOUT_MANAGER,
-        LINEAR_LAYOUT_MANAGER
-    }
-
-    LayoutManagerType jarCompDialogLayoutManagerType;
-    */
 
     RecyclerView jarCompDialogRecycler;
     CompositionRecyclerAdapter jarCompDialogAdapter;
@@ -35,9 +31,9 @@ public class JarCompositionDialog extends DialogFragment {
     String[] entrySet;
     String[] dataSet;
 
-    public class DataEntry {
-        String entry;
 
+    public interface resetJarListener {
+        void ClearJar();
     }
 
 

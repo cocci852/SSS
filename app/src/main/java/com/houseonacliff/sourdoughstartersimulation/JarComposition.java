@@ -53,6 +53,7 @@ public class JarComposition {
         for (int index = 0; index < labLevel.length; index++) {
             labLevel[index] = 0;
         }
+
         for (int index = 0; index < badLevel.length; index++) {
             badLevel[index] = 0;
         }
@@ -120,10 +121,11 @@ public class JarComposition {
         int[] randIndexArrayYeast = shuffledArrayIndex(yeastSize, rng);
 
         for (int i = 0; i < numMinutes; i++) {
+
+
             //bad first, in random order
             for (int k = 0; k < badSize; k++) {
                 long badGrowth =  Math.round(badLevel[randIndexArrayBad[k]] * (Math.exp( bad[randIndexArrayBad[k]].getRate(temp, hLevel,sugars) / 60) - 1));
-                badLevel[randIndexArrayBad[k]] += badGrowth;
                 long totalCosts[] = bad[randIndexArrayBad[k]].getCost(badGrowth);
                 sugars[0] -= totalCosts[0];
                 if(sugars[0] < 0) {
@@ -150,25 +152,26 @@ public class JarComposition {
                     sugars[4] = 0;
                     outOfFood = true;
                 }
-                micronutrientLevel -= totalCosts[4];
+                micronutrientLevel -= totalCosts[5];
                 if(micronutrientLevel < 0) {
                     micronutrientLevel = 0;
                     outOfFood = true;
                 }
+                glucoseLevel = sugars[0];
+                fructoseLevel = sugars[1];
+                sucroseLevel = sugars[2];
+                maltoseLevel = sugars[3];
+                lactoseLevel = sugars[4];
                 if (outOfFood) {
-                    glucoseLevel = sugars[0];
-                    fructoseLevel = sugars[1];
-                    sucroseLevel = sugars[2];
-                    maltoseLevel = sugars[3];
-                    lactoseLevel = sugars[4];
+                    badLevel[randIndexArrayBad[k]] /= 2;
                     return;
                 }
+                badLevel[randIndexArrayBad[k]] += badGrowth;
             }
 
             //lab second, in random order
             for (int k = 0; k < labSize; k++) {
                 long labGrowth =  Math.round(labLevel[randIndexArrayLAB[k]] * (Math.exp( lab[randIndexArrayLAB[k]].getRate(temp, hLevel,sugars) / 60) - 1));
-                labLevel[randIndexArrayLAB[k]] += labGrowth;
                 long totalCosts[] = lab[randIndexArrayLAB[k]].getCost(labGrowth);
                 sugars[0] -= totalCosts[0];
                 if(sugars[0] < 0) {
@@ -195,26 +198,27 @@ public class JarComposition {
                     sugars[4] = 0;
                     outOfFood = true;
                 }
-                micronutrientLevel -= totalCosts[4];
+                micronutrientLevel -= totalCosts[5];
                 if(micronutrientLevel < 0) {
                     micronutrientLevel = 0;
                     outOfFood = true;
                 }
-                hLevel += totalCosts[5];
+                hLevel += totalCosts[6];
+                glucoseLevel = sugars[0];
+                fructoseLevel = sugars[1];
+                sucroseLevel = sugars[2];
+                maltoseLevel = sugars[3];
+                lactoseLevel = sugars[4];
                 if (outOfFood) {
-                    glucoseLevel = sugars[0];
-                    fructoseLevel = sugars[1];
-                    sucroseLevel = sugars[2];
-                    maltoseLevel = sugars[3];
-                    lactoseLevel = sugars[4];
+                    labLevel[randIndexArrayLAB[k]] /= 2;
                     return;
                 }
+                labLevel[randIndexArrayLAB[k]] += labGrowth;
             }
 
             //yeast last, in random order
             for (int k = 0; k < yeastSize; k++) {
                 long yeastGrowth =  Math.round(yeastLevel[randIndexArrayYeast[k]] * (Math.exp( yeast[randIndexArrayYeast[k]].getRate(temp, hLevel,sugars) / 60) - 1));
-                yeastLevel[randIndexArrayYeast[k]] += yeastGrowth;
                 long totalCosts[] = yeast[randIndexArrayYeast[k]].getCost(yeastGrowth);
                 sugars[0] -= totalCosts[0];
                 if(sugars[0] < 0) {
@@ -241,19 +245,21 @@ public class JarComposition {
                     sugars[4] = 0;
                     outOfFood = true;
                 }
-                micronutrientLevel -= totalCosts[4];
+                micronutrientLevel -= totalCosts[5];
                 if(micronutrientLevel < 0) {
                     micronutrientLevel = 0;
                     outOfFood = true;
                 }
+                glucoseLevel = sugars[0];
+                fructoseLevel = sugars[1];
+                sucroseLevel = sugars[2];
+                maltoseLevel = sugars[3];
+                lactoseLevel = sugars[4];
                 if (outOfFood) {
-                    glucoseLevel = sugars[0];
-                    fructoseLevel = sugars[1];
-                    sucroseLevel = sugars[2];
-                    maltoseLevel = sugars[3];
-                    lactoseLevel = sugars[4];
+                    yeastLevel[randIndexArrayYeast[k]] /= 2;
                     return;
                 }
+                yeastLevel[randIndexArrayYeast[k]] += yeastGrowth;
             }
         }
 

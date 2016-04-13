@@ -24,6 +24,7 @@ public class FeedDialog extends DialogFragment {
     int selectedFlour;
     int selectedWater;
 
+
     public interface FeedChoiceListener {
         void onFeedChoiceMade(int flour_id, int water_id);
     }
